@@ -35,6 +35,9 @@ class webkit_panel(wx.Panel):
         self.html.ctrl.load_string(string,mime,coding,baseurl)
 
 class mdFrame(wx.Frame):
+    
+    __current_file = None
+    
     def __init__(self, *args, **kwds):
         kwds["style"] = wx.DEFAULT_FRAME_STYLE
         wx.Frame.__init__(self, *args, **kwds)
@@ -42,6 +45,7 @@ class mdFrame(wx.Frame):
         self.menubar = wx.MenuBar()
         file_menu = wx.Menu()
         file_menu.Append(wx.ID_OPEN, "&Open\tCtrl+O", "", wx.ITEM_NORMAL)
+        file_menu.Append(wx.ID_REFRESH, "&Reload\tCtrl+R","",wx.ITEM_NORMAL)
         file_menu.AppendSeparator()
         file_menu.Append(wx.ID_EXIT, "&Quit\tCtrl+Q","",wx.ITEM_NORMAL)
         
@@ -56,6 +60,7 @@ class mdFrame(wx.Frame):
 
         self.Bind(wx.EVT_MENU, self.onOpenFile, id=wx.ID_OPEN)
         self.Bind(wx.EVT_MENU, self.onExit, id=wx.ID_EXIT)
+        self.Bind(wx.EVT_MENU, self.onReload, id=wx.ID_REFRESH)
 
     def addWebkit(self):
         main_sizer = wx.BoxSizer(wx.VERTICAL)
@@ -79,6 +84,7 @@ class mdFrame(wx.Frame):
         self.Destroy()
     
     def openFile(self,fn):
+        self.__current_file = fn
         f = open(fn,'rb')
         md = decode(f.read())
         f.close()
@@ -92,3 +98,8 @@ class mdFrame(wx.Frame):
         html = HEAD % (title, ( CSS % (fgc, bgc) + CUSTOM_CSS) ) + body + FOOT
         
         self.html_window.loadString(html,"text/html","utf-8",u"file://" + basepath + u"/")
+
+    def onReload(self,event):
+        if self.__current_file is not None:
+            self.openFile(self.__current_file)
+        event.Skip()
